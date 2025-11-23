@@ -1,23 +1,27 @@
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // Tu URL de Supabase
+  url      = env("DATABASE_URL")
 }
 
+// Modelo de Producto (Actualizado con imagen)
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
   price       Float
-  category    String   // 'joyeria' o 'ropa'
+  category    String   
   description String?
+  imageUrl    String?  // 👈 Aquí está el campo nuevo
   stock       Int      @default(10)
   items       OrderItem[]
 }
 
+// Modelo de Orden
 model Order {
   id        Int      @id @default(autoincrement())
   total     Float
@@ -25,6 +29,7 @@ model Order {
   items     OrderItem[]
 }
 
+// Modelo de Item de la Orden
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
@@ -32,5 +37,5 @@ model OrderItem {
   productId Int
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
-  price     Float   // Precio al momento de la compra
+  price     Float
 }

@@ -1,65 +1,64 @@
-import Image from "next/image";
+// app/page.tsx
+import prisma from '@/lib/prisma'
+import Link from 'next/link'
+import AddToCartButton from '@/components/AddToCarButton'
 
-export default function Home() {
+export default async function HomePage() {
+  const products = await prisma.product.findMany()
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+          <Link href="/" className="text-2xl font-bold tracking-tighter text-slate-900">
+            MODA<span className="text-indigo-600">STORE</span>.
+          </Link>
+          <div className="flex gap-4 items-center">
+            <Link href="/admin" className="text-sm font-medium text-slate-500 hover:text-indigo-600">Admin</Link>
+            <Link href="/cart" className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-slate-800 transition">
+              Ver Carrito
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {products.map((product) => (
+            <div key={product.id} className="group bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
+              
+              {/* 👇 AQUÍ ESTÁ LA IMAGEN */}
+              <div className="aspect-square bg-gray-100 rounded-xl mb-4 relative overflow-hidden">
+                <img 
+                  src={product.imageUrl || 'https://placehold.co/400'} 
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+              </div>
+
+              <div className="flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-lg mb-1">{product.name}</h3>
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full uppercase">{product.category}</span>
+                </div>
+                
+                <div className="mt-4">
+                  <div className="flex items-end justify-between mb-4">
+                    <span className="text-2xl font-bold text-slate-900">${product.price.toFixed(2)}</span>
+                  </div>
+                  <AddToCartButton product={product} />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+        
+        {products.length === 0 && (
+           <div className="text-center py-20 text-gray-500">
+             No hay productos. Ve al <Link href="/admin" className="text-blue-600 underline">Admin</Link> para crear uno con foto.
+           </div>
+        )}
       </main>
     </div>
-  );
+  )
 }
