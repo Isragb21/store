@@ -13,7 +13,7 @@ export default function CartPage() {
   
   // Estados
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false) // 👈 NUEVO ESTADO IMPORTANTE
+  const [isSuccess, setIsSuccess] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('card')
   const [statusMessage, setStatusMessage] = useState('')
 
@@ -24,24 +24,26 @@ export default function CartPage() {
     setStatusMessage('Conectando con el banco...')
 
     try {
-      // 1. Simular espera artificial
+      // 1. Simular espera artificial (2 segundos) para dar realismo
       await new Promise(resolve => setTimeout(resolve, 2000))
+
       setStatusMessage('Validando fondos...')
       
       // 2. Llamar al servidor
       const result = await createOrder(total, items)
 
       if (result.success) {
-        setIsSuccess(true) // 👈 ACTIVAMOS ESTO PARA BLOQUEAR LA PANTALLA VACÍA
+        setIsSuccess(true) // Bloqueamos la pantalla para no mostrar "vacío"
         setStatusMessage('¡Pago Aprobado! Redirigiendo...')
         
-        // Espera final para leer el mensaje antes de irnos
+        // Espera final para leer el mensaje antes de irnos al ticket
         setTimeout(() => {
           clearCart() // Borra el carrito
           router.push(`/ticket/${result.orderId}`) // Redirige al ticket
         }, 1000)
 
       } else {
+        // En teoría esto ya no debería pasar porque forzamos el éxito en actions.ts
         setStatusMessage('')
         setIsProcessing(false)
         alert('❌ Error: ' + result.error)
@@ -53,8 +55,7 @@ export default function CartPage() {
     }
   }
 
-  // 👇 CONDICIÓN CORREGIDA:
-  // Solo muestra "Carrito Vacío" si está vacío Y NO estamos en proceso de éxito.
+  // Si el carrito está vacío Y NO estamos en proceso de éxito, mostramos mensaje de vacío
   if (items.length === 0 && !isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -81,7 +82,7 @@ export default function CartPage() {
             {items.map((item, index) => (
               <div key={index} className="p-4 flex items-center justify-between border-b last:border-0 hover:bg-gray-50 transition">
                 <div className="flex items-center gap-4">
-                  {/* Intentamos mostrar imagen, si no hay, mostramos letra */}
+                  {/* Imagen o Letra */}
                   <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 font-bold overflow-hidden">
                     {(item as any).imageUrl ? (
                         <img src={(item as any).imageUrl} className="w-full h-full object-cover" alt={item.name} />
@@ -103,7 +104,7 @@ export default function CartPage() {
               </div>
             ))}
             
-            {/* Mensaje visual si estamos redirigiendo */}
+            {/* Mensaje visual de redirección */}
             {items.length === 0 && isSuccess && (
                 <div className="p-8 text-center text-green-600 font-bold animate-pulse">
                     ✅ Generando ticket... por favor espere.
@@ -119,16 +120,8 @@ export default function CartPage() {
 
             {/* Selector de Método */}
             <div className="space-y-3 mb-8">
-              {/* Opción Tarjeta */}
               <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'}`}>
-                <input 
-                  type="radio" 
-                  name="payment" 
-                  value="card" 
-                  checked={paymentMethod === 'card'} 
-                  onChange={() => setPaymentMethod('card')}
-                  className="w-5 h-5 text-indigo-600 focus:ring-indigo-500"
-                />
+                <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
                 <div className="flex-1">
                   <span className="block font-bold text-slate-800">Tarjeta de Crédito</span>
                   <span className="text-xs text-slate-500">Visa, Mastercard, Amex</span>
@@ -136,16 +129,8 @@ export default function CartPage() {
                 <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
               </label>
 
-              {/* Opción Efectivo */}
               <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'cash' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'}`}>
-                <input 
-                  type="radio" 
-                  name="payment" 
-                  value="cash" 
-                  checked={paymentMethod === 'cash'} 
-                  onChange={() => setPaymentMethod('cash')}
-                  className="w-5 h-5 text-indigo-600 focus:ring-indigo-500"
-                />
+                <input type="radio" name="payment" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} className="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
                 <div className="flex-1">
                   <span className="block font-bold text-slate-800">Efectivo en Tienda</span>
                   <span className="text-xs text-slate-500">Pagar al recoger</span>
@@ -166,19 +151,18 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Botón de Pago con Feedback */}
+            {/* Botón de Pago */}
             <button
               onClick={handleCheckout}
               disabled={isProcessing}
               className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg
                 ${isProcessing 
-                  ? 'bg-green-600 cursor-not-allowed' // Se pone verde cuando procesa con éxito
+                  ? 'bg-green-600 cursor-not-allowed' 
                   : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 active:scale-95'
                 }`}
             >
               {isProcessing ? (
                 <div className="flex flex-col items-center">
-                  {/* Spinner simple */}
                   <svg className="animate-spin h-6 w-6 text-white mb-1" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   <span className="text-xs font-normal">{statusMessage}</span>
                 </div>
