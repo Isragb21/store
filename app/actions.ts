@@ -10,7 +10,7 @@ type CartItem = {
   price: number
 }
 
-// --- PRODUCTOS ---
+// --- PRODUCTOS Y ÓRDENES ---
 
 // 1. Crear Producto
 export async function createProduct(formData: FormData) {
@@ -27,25 +27,7 @@ export async function createProduct(formData: FormData) {
   revalidatePath('/')
 }
 
-// 2. Eliminar Producto (NUEVO)
-export async function deleteProduct(formData: FormData) {
-  const id = formData.get('id') as string
-  
-  try {
-    await prisma.product.delete({
-      where: { id: parseInt(id) }
-    })
-    revalidatePath('/admin')
-    revalidatePath('/')
-    return { success: true }
-  } catch (error) {
-    return { success: false, error: 'No se pudo eliminar' }
-  }
-}
-
-// --- ÓRDENES ---
-
-// 3. Procesar Pago (Crear Orden)
+// 2. Procesar Pago
 export async function createOrder(total: number, items: CartItem[]) {
   const success = true; 
 
@@ -70,24 +52,9 @@ export async function createOrder(total: number, items: CartItem[]) {
   }
 }
 
-// 4. Completar/Eliminar Pedido (NUEVO)
-export async function completeOrder(formData: FormData) {
-  const id = formData.get('id') as string
-
-  try {
-    await prisma.order.delete({
-      where: { id: parseInt(id) }
-    })
-    revalidatePath('/admin/orders')
-    return { success: true }
-  } catch (error) {
-    return { success: false, error: 'Error al completar pedido' }
-  }
-}
-
 // --- USUARIOS Y SESIÓN ---
 
-// 5. Registrar Usuario
+// 3. Registrar Usuario
 export async function registerUser(formData: FormData) {
   const name = formData.get('name') as string
   const email = formData.get('email') as string
@@ -105,7 +72,7 @@ export async function registerUser(formData: FormData) {
   }
 }
 
-// 6. Iniciar Sesión
+// 4. Iniciar Sesión
 export async function loginUser(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -128,7 +95,7 @@ export async function loginUser(formData: FormData) {
   return { success: true }
 }
 
-// 7. Cerrar Sesión
+// 5. Cerrar Sesión (ESTA ES LA QUE FALTABA)
 export async function logoutUser() {
   const cookieStore = await cookies()
   cookieStore.delete('session')
