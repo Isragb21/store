@@ -10,27 +10,47 @@ type CartItem = {
   price: number
 }
 
-// --- PRODUCTOS Y ÓRDENES ---
+// ==========================================
+// 1. GESTIÓN DE PRODUCTOS (ADMIN)
+// ==========================================
 
-// 1. Crear Producto
 export async function createProduct(formData: FormData) {
   const name = formData.get('name') as string
   const price = parseFloat(formData.get('price') as string)
   const category = formData.get('category') as string 
   const imageUrl = formData.get('imageUrl') as string || 'https://placehold.co/400x400/png'
   
-  await prisma.product.create({
-    data: { name, price, category, imageUrl, description: 'Producto nuevo' }
-  })
-
-  revalidatePath('/admin')
-  revalidatePath('/')
+  try {
+    await prisma.product.create({
+      data: { name, price, category, imageUrl, description: 'Producto nuevo' }
+    })
+    revalidatePath('/admin')
+    revalidatePath('/')
+  } catch (error) {
+    console.log("Error creando producto:", error)
+  }
 }
 
-// 2. Procesar Pago
-export async function createOrder(total: number, items: CartItem[]) {
-  const success = true; 
+export async function deleteProduct(formData: FormData) {
+  const id = formData.get('id') as string
+  
+  try {
+    await prisma.product.delete({
+      where: { id: parseInt(id) }
+    })
+    revalidatePath('/admin')
+    revalidatePath('/')
+  } catch (error) {
+    console.log("Error eliminando producto:", error)
+  }
+}
 
+// ==========================================
+// 2. GESTIÓN DE ÓRDENES (TIENDA Y ADMIN)
+// ==========================================
+
+// Esta función SÍ devuelve valor porque la usa el frontend (CartPage)
+export async function createOrder(total: number, items: CartItem[]) {
   try {
     const order = await prisma.order.create({
       data: {
@@ -52,9 +72,23 @@ export async function createOrder(total: number, items: CartItem[]) {
   }
 }
 
-// --- USUARIOS Y SESIÓN ---
+export async function completeOrder(formData: FormData) {
+  const id = formData.get('id') as string
 
-// 3. Registrar Usuario
+  try {
+    await prisma.order.delete({
+      where: { id: parseInt(id) }
+    })
+    revalidatePath('/admin/orders')
+  } catch (error) {
+    console.log("Error completando orden:", error)
+  }
+}
+
+// ==========================================
+// 3. USUARIOS Y SESIÓN
+// ==========================================
+
 export async function registerUser(formData: FormData) {
   const name = formData.get('name') as string
   const email = formData.get('email') as string
@@ -72,7 +106,6 @@ export async function registerUser(formData: FormData) {
   }
 }
 
-// 4. Iniciar Sesión
 export async function loginUser(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -95,7 +128,6 @@ export async function loginUser(formData: FormData) {
   return { success: true }
 }
 
-// 5. Cerrar Sesión (ESTA ES LA QUE FALTABA)
 export async function logoutUser() {
   const cookieStore = await cookies()
   cookieStore.delete('session')
