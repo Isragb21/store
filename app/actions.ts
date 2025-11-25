@@ -10,7 +10,9 @@ type CartItem = {
   price: number
 }
 
-// --- PRODUCTOS ---
+// ==========================================
+// 1. GESTIÓN DE PRODUCTOS (ADMIN)
+// ==========================================
 
 export async function createProduct(formData: FormData) {
   const name = formData.get('name') as string
@@ -43,15 +45,16 @@ export async function deleteProduct(formData: FormData) {
   }
 }
 
-// --- ÓRDENES ---
+// ==========================================
+// 2. GESTIÓN DE ÓRDENES (TIENDA Y ADMIN)
+// ==========================================
 
-// 👇 MODIFICADO: Ahora recibe paymentMethod
-export async function createOrder(total: number, items: CartItem[], paymentMethod: string) {
+// Esta función SÍ devuelve valor porque la usa el frontend (CartPage)
+export async function createOrder(total: number, items: CartItem[]) {
   try {
     const order = await prisma.order.create({
       data: {
         total: total,
-        paymentMethod: paymentMethod, // 👈 Guardamos el método
         items: {
           create: items.map((item) => ({
             productId: item.id,
@@ -82,12 +85,15 @@ export async function completeOrder(formData: FormData) {
   }
 }
 
-// --- USUARIOS ---
+// ==========================================
+// 3. USUARIOS Y SESIÓN
+// ==========================================
 
 export async function registerUser(formData: FormData) {
   const name = formData.get('name') as string
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  
   const role = email.includes('admin') ? 'admin' : 'user'
 
   try {
@@ -103,6 +109,7 @@ export async function registerUser(formData: FormData) {
 export async function loginUser(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+
   const user = await prisma.user.findUnique({ where: { email } })
 
   if (!user || user.password !== password) {
@@ -110,8 +117,13 @@ export async function loginUser(formData: FormData) {
   }
 
   const sessionData = JSON.stringify({ id: user.id, name: user.name, role: user.role })
+  
   const cookieStore = await cookies()
-  cookieStore.set('session', sessionData, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 7 })
+  cookieStore.set('session', sessionData, { 
+    httpOnly: true, 
+    path: '/',      
+    maxAge: 60 * 60 * 24 * 7 
+  })
 
   return { success: true }
 }
