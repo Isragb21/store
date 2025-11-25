@@ -1,4 +1,5 @@
-// app/admin/page.tsx
+export const dynamic = "force-dynamic";
+
 import { createProduct, deleteProduct } from '../actions'
 import prisma from '@/lib/prisma'
 import Link from 'next/link'
