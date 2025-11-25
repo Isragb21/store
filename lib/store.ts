@@ -1,15 +1,18 @@
 // lib/store.ts
 import { create } from 'zustand'
 
-type Product = {
+// 👇 Aquí definimos qué datos tiene un producto del carrito
+export type CartProduct = {
   id: number
   name: string
   price: number
+  imageUrl?: string | null // 👈 Ahora sabe que puede tener imagen
+  category?: string
 }
 
 type CartStore = {
-  items: Product[]
-  addItem: (product: Product) => void
+  items: CartProduct[]
+  addItem: (product: CartProduct) => void
   removeItem: (productId: number) => void
   clearCart: () => void
 }
