@@ -49,12 +49,13 @@ export async function deleteProduct(formData: FormData) {
 // 2. GESTIÓN DE ÓRDENES (TIENDA Y ADMIN)
 // ==========================================
 
-// Esta función SÍ devuelve valor porque la usa el frontend (CartPage)
-export async function createOrder(total: number, items: CartItem[]) {
+// 👇 AQUÍ ESTÁ EL CAMBIO: Agregamos 'paymentMethod: string'
+export async function createOrder(total: number, items: CartItem[], paymentMethod: string) {
   try {
     const order = await prisma.order.create({
       data: {
         total: total,
+        paymentMethod: paymentMethod, // 👈 Guardamos el dato en la BD
         items: {
           create: items.map((item) => ({
             productId: item.id,

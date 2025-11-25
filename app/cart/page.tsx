@@ -11,7 +11,6 @@ export default function CartPage() {
   const { items, removeItem, clearCart } = useCartStore()
   const router = useRouter()
   
-  // Estados
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('card')
@@ -24,26 +23,21 @@ export default function CartPage() {
     setStatusMessage('Conectando con el banco...')
 
     try {
-      // 1. Simular espera artificial (2 segundos) para dar realismo
       await new Promise(resolve => setTimeout(resolve, 2000))
-
       setStatusMessage('Validando fondos...')
       
-      // 2. Llamar al servidor
-      const result = await createOrder(total, items)
+      const result = await createOrder(total, items, paymentMethod)
 
       if (result.success) {
-        setIsSuccess(true) // Bloqueamos la pantalla para no mostrar "vacío"
+        setIsSuccess(true)
         setStatusMessage('¡Pago Aprobado! Redirigiendo...')
         
-        // Espera final para leer el mensaje antes de irnos al ticket
         setTimeout(() => {
-          clearCart() // Borra el carrito
-          router.push(`/ticket/${result.orderId}`) // Redirige al ticket
+          clearCart()
+          router.push(`/ticket/${result.orderId}`)
         }, 1000)
 
       } else {
-        // En teoría esto ya no debería pasar porque forzamos el éxito en actions.ts
         setStatusMessage('')
         setIsProcessing(false)
         alert('❌ Error: ' + result.error)
@@ -55,7 +49,6 @@ export default function CartPage() {
     }
   }
 
-  // Si el carrito está vacío Y NO estamos en proceso de éxito, mostramos mensaje de vacío
   if (items.length === 0 && !isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -74,7 +67,7 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-6">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* COLUMNA IZQUIERDA: Lista de Productos */}
+        {/* Lista de Productos */}
         <div className="lg:col-span-2 space-y-6">
           <h1 className="text-3xl font-bold text-slate-900">Resumen de Compra</h1>
           
@@ -82,10 +75,11 @@ export default function CartPage() {
             {items.map((item, index) => (
               <div key={index} className="p-4 flex items-center justify-between border-b last:border-0 hover:bg-gray-50 transition">
                 <div className="flex items-center gap-4">
-                  {/* Imagen o Letra */}
                   <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 font-bold overflow-hidden">
-                    {(item as any).imageUrl ? (
-                        <img src={(item as any).imageUrl} className="w-full h-full object-cover" alt={item.name} />
+                    {/* 👇 YA NO HAY 'ANY': Usamos item.imageUrl directo */}
+                    {item.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.imageUrl} className="w-full h-full object-cover" alt={item.name} />
                     ) : (
                         item.name.charAt(0)
                     )}
@@ -104,7 +98,6 @@ export default function CartPage() {
               </div>
             ))}
             
-            {/* Mensaje visual de redirección */}
             {items.length === 0 && isSuccess && (
                 <div className="p-8 text-center text-green-600 font-bold animate-pulse">
                     ✅ Generando ticket... por favor espere.
@@ -113,18 +106,17 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Pasarela de Pago */}
+        {/* Pasarela de Pago */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 sticky top-6">
             <h2 className="text-xl font-bold text-slate-900 mb-6">Método de Pago</h2>
 
-            {/* Selector de Método */}
             <div className="space-y-3 mb-8">
               <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'card' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'}`}>
                 <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
                 <div className="flex-1">
                   <span className="block font-bold text-slate-800">Tarjeta de Crédito</span>
-                  <span className="text-xs text-slate-500">Visa, Mastercard, Amex</span>
+                  <span className="text-xs text-slate-500">Visa, Mastercard</span>
                 </div>
                 <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
               </label>
@@ -132,14 +124,13 @@ export default function CartPage() {
               <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'cash' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'}`}>
                 <input type="radio" name="payment" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} className="w-5 h-5 text-indigo-600 focus:ring-indigo-500" />
                 <div className="flex-1">
-                  <span className="block font-bold text-slate-800">Efectivo en Tienda</span>
+                  <span className="block font-bold text-slate-800">Efectivo</span>
                   <span className="text-xs text-slate-500">Pagar al recoger</span>
                 </div>
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
               </label>
             </div>
 
-            {/* Totales */}
             <div className="border-t pt-4 mb-6 space-y-2">
               <div className="flex justify-between text-slate-500">
                 <span>Subtotal</span>
@@ -151,7 +142,6 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* Botón de Pago */}
             <button
               onClick={handleCheckout}
               disabled={isProcessing}
