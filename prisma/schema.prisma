@@ -25,25 +25,22 @@ model Product {
   description String?
   imageUrl    String?
   stock       Int      @default(10)
-  // 👇 CAMBIO: Si borro el producto, se borra del historial de items (Cascade)
-  items       OrderItem[] 
+  items       OrderItem[]
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  total     Float
-  createdAt DateTime @default(now())
-  // 👇 CAMBIO: Si borro la orden, se borran sus items
-  items     OrderItem[] 
+  id            Int      @id @default(autoincrement())
+  total         Float
+  paymentMethod String   @default("card") // 👈 NUEVO CAMPO
+  createdAt     DateTime @default(now())
+  items         OrderItem[]
 }
 
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
-  // 👇 AQUÍ ESTÁ LA MAGIA (onDelete: Cascade)
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId Int
-  // 👇 AQUÍ TAMBIÉN (onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity  Int
   price     Float
