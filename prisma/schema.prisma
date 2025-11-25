@@ -29,12 +29,16 @@ model Product {
   items       OrderItem[] 
 }
 
+// prisma/schema.prisma
+
+// ... (User y Product igual que antes) ...
+
 model Order {
-  id        Int      @id @default(autoincrement())
-  total     Float
-  createdAt DateTime @default(now())
-  // 👇 CAMBIO: Si borro la orden, se borran sus items
-  items     OrderItem[] 
+  id            Int      @id @default(autoincrement())
+  total         Float
+  paymentMethod String   @default("card") // 👈 ¡ESTA LÍNEA ES LA QUE FALTA EN VERCEL!
+  createdAt     DateTime @default(now())
+  items         OrderItem[]
 }
 
 model OrderItem {
