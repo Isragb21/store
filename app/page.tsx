@@ -31,7 +31,7 @@ export default async function HomePage() {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold tracking-tighter text-slate-900">
-            MODA<span className="text-indigo-600">STORE</span>.
+            ELENI<span className="text-indigo-600">FASHION</span>.
           </Link>
           
           <div className="flex gap-4 items-center">
