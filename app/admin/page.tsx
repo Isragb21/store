@@ -1,4 +1,3 @@
-// app/admin/page.tsx
 import { createProduct, deleteProduct } from '../actions'
 import prisma from '@/lib/prisma'
 import Link from 'next/link'
@@ -38,9 +37,15 @@ export default async function AdminPage() {
                   <input name="name" placeholder="Ej. Collar de Oro" className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 placeholder:text-gray-400" required />
                 </div>
                 
+                {/* 👇 AQUÍ ESTÁ EL ÚNICO CAMBIO: Input de archivo para subir imagen */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">URL de Imagen</label>
-                  <input name="imageUrl" type="url" placeholder="https://..." className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 text-sm" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Imagen</label>
+                  <input 
+                    name="image" 
+                    type="file" 
+                    accept="image/*"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 text-sm" 
+                  />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
