@@ -4,7 +4,6 @@
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
-// 👇 CAMBIO 1: Importamos el tipo correcto para la respuesta
 import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary'
 
 // ==========================================
@@ -38,19 +37,17 @@ export async function createProduct(formData: FormData) {
       const arrayBuffer = await imageFile.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      // 👇 CAMBIO 2: Tipamos la Promesa correctamente para eliminar el 'any'
+      // Tipamos la Promesa correctamente
       const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
         cloudinary.uploader.upload_stream(
           { folder: 'mi-tienda-nest' }, 
           (error, result) => {
             if (error) reject(error)
-            // Aseguramos a TS que el resultado es del tipo correcto
             else resolve(result as UploadApiResponse) 
           }
         ).end(buffer)
       })
 
-      // Ahora TS sabe que secure_url existe
       imageUrl = uploadResponse.secure_url
     }
 
@@ -60,11 +57,11 @@ export async function createProduct(formData: FormData) {
 
     revalidatePath('/admin')
     revalidatePath('/')
-    return { success: true }
     
+    // Sin return para evitar error de TypeScript en <form action={...}>
+
   } catch (error) {
     console.log("Error creando producto:", error)
-    return { success: false, error: 'Error al crear producto' }
   }
 }
 
