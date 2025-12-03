@@ -4,6 +4,17 @@
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
+// 👇 CAMBIO 1: Importamos el tipo correcto para la respuesta
+import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary'
+
+// ==========================================
+// CONFIGURACIÓN DE CLOUDINARY
+// ==========================================
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 type CartItem = {
   id: number
@@ -18,16 +29,42 @@ export async function createProduct(formData: FormData) {
   const name = formData.get('name') as string
   const price = parseFloat(formData.get('price') as string)
   const category = formData.get('category') as string 
-  const imageUrl = formData.get('imageUrl') as string || 'https://placehold.co/400x400/png'
+  const imageFile = formData.get('image') as File 
   
+  let imageUrl = 'https://placehold.co/400x400/png' 
+
   try {
+    if (imageFile && imageFile.size > 0) {
+      const arrayBuffer = await imageFile.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // 👇 CAMBIO 2: Tipamos la Promesa correctamente para eliminar el 'any'
+      const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: 'mi-tienda-nest' }, 
+          (error, result) => {
+            if (error) reject(error)
+            // Aseguramos a TS que el resultado es del tipo correcto
+            else resolve(result as UploadApiResponse) 
+          }
+        ).end(buffer)
+      })
+
+      // Ahora TS sabe que secure_url existe
+      imageUrl = uploadResponse.secure_url
+    }
+
     await prisma.product.create({
       data: { name, price, category, imageUrl, description: 'Producto nuevo' }
     })
+
     revalidatePath('/admin')
     revalidatePath('/')
+    return { success: true }
+    
   } catch (error) {
     console.log("Error creando producto:", error)
+    return { success: false, error: 'Error al crear producto' }
   }
 }
 
@@ -49,13 +86,12 @@ export async function deleteProduct(formData: FormData) {
 // 2. GESTIÓN DE ÓRDENES (TIENDA Y ADMIN)
 // ==========================================
 
-// 👇 AQUÍ ESTÁ EL CAMBIO: Agregamos 'paymentMethod: string'
 export async function createOrder(total: number, items: CartItem[], paymentMethod: string) {
   try {
     const order = await prisma.order.create({
       data: {
         total: total,
-        paymentMethod: paymentMethod, // 👈 Guardamos el dato en la BD
+        paymentMethod: paymentMethod, 
         items: {
           create: items.map((item) => ({
             productId: item.id,
